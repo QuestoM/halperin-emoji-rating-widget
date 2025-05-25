@@ -4,151 +4,136 @@
   <meta charset="utf-8" />
   <title>Halperin Emoji Rating</title>
 
-  <!-- Tailwind־CSS CDN (‎כולל RTL) -->
+  <!-- Tailwind CDN -->
   <script src="https://cdn.tailwindcss.com"></script>
 
-  <!-- התאמה לגוון המותג -->
+  <!-- Tailwind config (לפני ייבוא CSS!) -->
   <script>
     tailwind.config = {
-      theme: {
-        extend: { colors: { brandBlue: '#00B0F0' } }
-      }
+      theme: { extend: { colors: { brandBlue: '#00B0F0' } } }
     };
+  </script>
+
+  <!-- Import map שמגדיר מאיפה React יגיע -->
+  <script type="importmap">
+  {
+    "imports": {
+      "react": "https://esm.sh/react@18.2.0",
+      "react-dom/client": "https://esm.sh/react-dom@18.2.0/client"
+    }
+  }
   </script>
 </head>
 <body class="bg-gray-50 flex items-center justify-center min-h-screen">
 
-  <!-- יעד ההרצה -->
   <div id="root"></div>
 
-  <!-- React + ReactDOM -->
+  <!-- הקוד עצמו -->
   <script type="module">
-    import React, { useState }      from 'https://cdn.skypack.dev/react';
-    import { createRoot }           from 'https://cdn.skypack.dev/react-dom/client';
+    import React, { useState }      from 'react';
+    import { createRoot }           from 'react-dom/client';
 
-    /* ------------------------------------------------------------
-       HalperinEmojiRating – קומפוננטת משוב בודדת
-    ------------------------------------------------------------ */
+    /* ------------ הקומפוננטה  ------------ */
     const HalperinEmojiRating = () => {
-      /* --- state --- */
-      const [selected, setSelected] = useState(null);     // ‏דירוג
-      const [view, setView]         = useState('rating'); // rating|feedback|success
-      const [good, setGood]         = useState('');
-      const [bad,  setBad]          = useState('');
+      const [selected, setSelected] = useState(null);
+      const [view, setView]         = useState('rating');   // rating|feedback|success
+      const [pos, setPos]           = useState('');
+      const [neg, setNeg]           = useState('');
       const [busy, setBusy]         = useState(false);
 
-      /* --- קבועים --- */
-      const googleUrl = 'https://g.page/r/CRKQvqYdnP4sEBM/review';
-      const ratings   = [
-        { v:5, e:'😍', l:'מצוין'     },
-        { v:4, e:'😊', l:'טוב מאוד'  },
-        { v:3, e:'😐', l:'בסדר'      },
-        { v:2, e:'😕', l:'פחות טוב'  },
-        { v:1, e:'😢', l:'מאכזב'     }
+      const google = 'https://g.page/r/CRKQvqYdnP4sEBM/review';
+      const ratings = [
+        {v:5,e:'😍',l:'מצוין'},
+        {v:4,e:'😊',l:'טוב מאוד'},
+        {v:3,e:'😐',l:'בסדר'},
+        {v:2,e:'😕',l:'פחות טוב'},
+        {v:1,e:'😢',l:'מאכזב'}
       ];
 
-      /* --- בעת בחירת דירוג --- */
-      const choose = (r) => {
+      /* בחירת דירוג */
+      const choose = r => {
         setSelected(r);
-        if (r.v === 5) {            // ⭐⭐⭐⭐⭐
-          setView('success');
-          setTimeout(()=>location.href = googleUrl, 4000);
-        } else if (r.v === 4) {     // 4‎-כוכבים
-          setView('success');
-        } else {                    // 1-3
+        if (r.v === 5) {
+          setView('success');                // מסך תודה משכנע
+          setTimeout(()=>location.href=google, 4000);
+        } else if (r.v === 4) {
+          setView('success');                // תודה קצרה
+        } else {
           setTimeout(()=>setView('feedback'), 250);
         }
       };
 
-      /* --- שליחת משוב (1-3 כוכבים) --- */
+      /* שליחת משוב */
       const submit = () => {
-        if (!bad.trim() && !good.trim()) return;
+        if (!neg.trim() && !pos.trim()) return;
         setBusy(true);
         setTimeout(()=>{
-          console.log('Feedback:', {rating:selected.v, bad, good, t:new Date().toISOString()});
+          console.log({rating:selected.v, neg, pos, t:new Date().toISOString()});
           setBusy(false);
           setView('success');
-        },1000);
+        }, 1000);
       };
 
-      /* --------------------------------------------------
-         תצוגות – SUCCESS
-      -------------------------------------------------- */
+      /* ---------- SUCCESS ---------- */
       if (view === 'success') {
-        if (selected?.v === 5)      // ⭐⭐⭐⭐⭐
-          return (
-            <div className="bg-white border border-gray-100 rounded-xl shadow p-6 max-w-sm text-center">
-              <div className="text-4xl mb-2">🎉</div>
-              <h3 className="text-lg font-semibold mb-1">תודה רבה על הדירוג המושלם!</h3>
-              <p className="text-sm text-gray-600 mb-4 leading-relaxed">
-                לחצו על הכפתור ודרגו אותנו ב-Google – זה מאוד יעזור לנו להגיע לעוד לקוחות מרוצים.
-              </p>
-              <a href={googleUrl}
-                 className="inline-block px-4 py-2.5 text-sm font-medium rounded-lg text-white"
-                 style={{background:'#00B0F0'}}>לדירוג ב-Google</a>
-              <p className="text-xs text-gray-500 mt-3">מעבירים אתכם אוטומטית בעוד כמה שניות…</p>
-            </div>);
-
-        if (selected?.v === 4)      // 4-כוכבים
-          return (
-            <div className="bg-white border border-gray-100 rounded-xl shadow p-6 max-w-sm text-center">
-              <div className="text-4xl mb-2">🙏</div>
-              <h3 className="text-lg font-semibold mb-1">תודה על המשוב החיובי!</h3>
-              <p className="text-sm text-gray-600">שמחים שנהניתם מהשירות שלנו</p>
-            </div>);
-
-        /* 1-3 כוכבים */
+        if (selected?.v === 5) return (
+          <div className="bg-white rounded-xl shadow p-6 max-w-sm text-center border border-gray-100">
+            <div className="text-4xl mb-2">🎉</div>
+            <h3 className="text-lg font-semibold mb-1">תודה רבה על הדירוג המושלם!</h3>
+            <p className="text-sm text-gray-600 mb-4">דרגו אותנו ב-Google בלחיצה אחת 😇</p>
+            <a href={google} className="inline-block px-4 py-2.5 text-sm font-medium rounded-lg text-white"
+               style={{background:'#00B0F0'}}>לדירוג ב-Google</a>
+            <p className="text-xs text-gray-500 mt-3">נעביר אתכם אוטומטית בעוד כמה שניות…</p>
+          </div>);
+        if (selected?.v === 4) return (
+          <div className="bg-white rounded-xl shadow p-6 max-w-sm text-center border border-gray-100">
+            <div className="text-4xl mb-2">🙏</div>
+            <h3 className="text-lg font-semibold mb-1">תודה על המשוב החיובי!</h3>
+            <p className="text-sm text-gray-600">שמחים שנהניתם 🙌</p>
+          </div>);
         return (
-          <div className="bg-white border border-gray-100 rounded-xl shadow p-6 max-w-sm text-center">
+          <div className="bg-white rounded-xl shadow p-6 max-w-sm text-center border border-gray-100">
             <div className="text-4xl mb-2">✅</div>
             <h3 className="text-lg font-semibold mb-1">קיבלנו, תודה!</h3>
-            <p className="text-sm text-gray-600">המשוב שלכם יעזור לנו להשתפר</p>
+            <p className="text-sm text-gray-600">נעשה הכול להשתפר</p>
           </div>);
       }
 
-      /* --------------------------------------------------
-         תצוגת FEEDBACK (1-3 כוכבים)
-      -------------------------------------------------- */
-      if (view === 'feedback')
-        return (
-          <div className="bg-white border border-gray-100 rounded-xl shadow p-6 max-w-sm">
-            <h3 className="text-base font-semibold mb-4">נשמח לשמוע איך נוכל להשתפר 🙏</h3>
-
-            <div className="space-y-3">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">מה נוכל לשפר? 🎯</label>
-                <textarea rows="2" className="w-full text-sm border border-gray-200 rounded-lg px-3 py-2
-                                               focus:outline-none focus:ring-2 focus:ring-brandBlue resize-none"
-                          placeholder="שתפו אותנו בתקלות או רעיונות"
-                          value={bad} onChange={e=>setBad(e.target.value)} />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">מה היה טוב בחוויה? 💙</label>
-                <textarea rows="2" className="w-full text-sm border border-gray-200 rounded-lg px-3 py-2
-                                               focus:outline-none focus:ring-2 focus:ring-brandBlue resize-none"
-                          placeholder="איזה רגע שימח אתכם?"
-                          value={good} onChange={e=>setGood(e.target.value)} />
-              </div>
-
-              <button onClick={submit}
-                      disabled={busy || (!bad.trim() && !good.trim())}
-                      className="w-full py-2.5 rounded-lg text-white text-sm font-medium disabled:opacity-50
-                                 flex items-center justify-center gap-1"
-                      style={{background:'#00B0F0'}}>
-                {busy ? 'שולח…' : <>✉️<span>שלח משוב</span></>}
-              </button>
+      /* ---------- FEEDBACK ---------- */
+      if (view === 'feedback') return (
+        <div className="bg-white rounded-xl shadow p-6 max-w-sm border border-gray-100">
+          <h3 className="text-base font-semibold mb-4">נשמח לשמוע איך נוכל להשתפר 🙏</h3>
+          <div className="space-y-3">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">מה נוכל לשפר? 🎯</label>
+              <textarea rows="2" className="w-full text-sm border border-gray-200 rounded-lg px-3 py-2
+                                             focus:outline-none focus:ring-2 focus:ring-brandBlue resize-none"
+                        placeholder="ספרו לנו מה פחות עבד"
+                        value={neg} onChange={e=>setNeg(e.target.value)} />
             </div>
-          </div>);
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">מה אהבתם? 💙</label>
+              <textarea rows="2" className="w-full text-sm border border-gray-200 rounded-lg px-3 py-2
+                                             focus:outline-none focus:ring-2 focus:ring-brandBlue resize-none"
+                        placeholder="רגעים טובים או צוות מצוין"
+                        value={pos} onChange={e=>setPos(e.target.value)} />
+            </div>
+            <button onClick={submit}
+                    disabled={busy || (!neg.trim() && !pos.trim())}
+                    className="w-full py-2.5 rounded-lg text-white text-sm font-medium disabled:opacity-50
+                               flex items-center justify-center gap-1"
+                    style={{background:'#00B0F0'}}>
+              {busy ? 'שולח…' : <>✉️<span>שלח משוב</span></>}
+            </button>
+          </div>
+        </div>);
 
-      /* --------------------------------------------------
-         תצוגת RATING
-      -------------------------------------------------- */
+      /* ---------- RATING ---------- */
       return (
-        <div className="bg-white border border-gray-100 rounded-xl shadow p-6 max-w-sm">
+        <div className="bg-white rounded-xl shadow p-6 max-w-sm border border-gray-100">
           <h2 className="text-base font-semibold text-center mb-5 flex items-center justify-center gap-1">
             איך הייתה החוויה שלכם בסניף? 🤓
           </h2>
-
           <div className="flex justify-between gap-2">
             {ratings.map(r=>(
               <button key={r.v} onClick={()=>choose(r)}
@@ -164,7 +149,7 @@
         </div>);
     };
 
-    /* הרצה */
+    /* הרצת האפליקציה */
     createRoot(document.getElementById('root')).render(<HalperinEmojiRating />);
   </script>
 </body>
