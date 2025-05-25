@@ -4,45 +4,38 @@
   <meta charset="utf-8" />
   <title>Halperin Emoji Rating</title>
 
-  <!-- Tailwind CDN -->
+  <!-- Tailwind CSS CDN -->
   <script src="https://cdn.tailwindcss.com"></script>
-
-  <!-- Tailwind config (לפני ייבוא CSS!) -->
   <script>
-    tailwind.config = {
-      theme: { extend: { colors: { brandBlue: '#00B0F0' } } }
-    };
+    tailwind.config = { theme: { extend: { colors: { brandBlue: '#00B0F0' } } } };
   </script>
 
-  <!-- Import map שמגדיר מאיפה React יגיע -->
-  <script type="importmap">
-  {
-    "imports": {
-      "react": "https://esm.sh/react@18.2.0",
-      "react-dom/client": "https://esm.sh/react-dom@18.2.0/client"
-    }
-  }
-  </script>
+  <!-- React 18 + ReactDOM (גרסאות UMD גלובליות) -->
+  <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+  <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+
+  <!-- Babel-Standalone – קומפילר JSX בזמן-ריצה -->
+  <script src="https://unpkg.com/@babel/standalone@7/babel.min.js"></script>
 </head>
-<body class="bg-gray-50 flex items-center justify-center min-h-screen">
 
+<body class="bg-gray-50 flex items-center justify-center min-h-screen">
   <div id="root"></div>
 
-  <!-- הקוד עצמו -->
-  <script type="module">
-    import React, { useState }      from 'react';
-    import { createRoot }           from 'react-dom/client';
+  <!-- הקוד: type=\"text/babel\" כדי שבבל יקמפל ל-JS -->
+  <script type="text/babel">
+    const { useState }   = React;
+    const { createRoot } = ReactDOM;
 
-    /* ------------ הקומפוננטה  ------------ */
+    /* ---------------- קומפוננטת הדירוג ---------------- */
     const HalperinEmojiRating = () => {
-      const [selected, setSelected] = useState(null);
-      const [view, setView]         = useState('rating');   // rating|feedback|success
-      const [pos, setPos]           = useState('');
-      const [neg, setNeg]           = useState('');
-      const [busy, setBusy]         = useState(false);
+      const [sel, setSel] = useState(null);          // ‎דירוג
+      const [view, setV]  = useState('rating');      // rating | feedback | success
+      const [good, setG]  = useState('');
+      const [bad,  setB]  = useState('');
+      const [busy, setBusy]=useState(false);
 
       const google = 'https://g.page/r/CRKQvqYdnP4sEBM/review';
-      const ratings = [
+      const rates  = [
         {v:5,e:'😍',l:'מצוין'},
         {v:4,e:'😊',l:'טוב מאוד'},
         {v:3,e:'😐',l:'בסדר'},
@@ -51,56 +44,50 @@
       ];
 
       /* בחירת דירוג */
-      const choose = r => {
-        setSelected(r);
-        if (r.v === 5) {
-          setView('success');                // מסך תודה משכנע
-          setTimeout(()=>location.href=google, 4000);
-        } else if (r.v === 4) {
-          setView('success');                // תודה קצרה
-        } else {
-          setTimeout(()=>setView('feedback'), 250);
-        }
+      const choose = r=>{
+        setSel(r);
+        if(r.v===5){ setV('success'); setTimeout(()=>location.href=google,4e3);}
+        else if(r.v===4){ setV('success'); }
+        else { setTimeout(()=>setV('feedback'),250);}
       };
 
       /* שליחת משוב */
-      const submit = () => {
-        if (!neg.trim() && !pos.trim()) return;
+      const send = ()=>{
+        if(!bad.trim()&&!good.trim()) return;
         setBusy(true);
         setTimeout(()=>{
-          console.log({rating:selected.v, neg, pos, t:new Date().toISOString()});
-          setBusy(false);
-          setView('success');
-        }, 1000);
+          console.log({rating:sel.v,bad,good,t:new Date().toISOString()});
+          setBusy(false); setV('success');
+        },1e3);
       };
 
       /* ---------- SUCCESS ---------- */
-      if (view === 'success') {
-        if (selected?.v === 5) return (
+      if(view==='success'){
+        if(sel?.v===5) return (
           <div className="bg-white rounded-xl shadow p-6 max-w-sm text-center border border-gray-100">
             <div className="text-4xl mb-2">🎉</div>
             <h3 className="text-lg font-semibold mb-1">תודה רבה על הדירוג המושלם!</h3>
-            <p className="text-sm text-gray-600 mb-4">דרגו אותנו ב-Google בלחיצה אחת 😇</p>
-            <a href={google} className="inline-block px-4 py-2.5 text-sm font-medium rounded-lg text-white"
+            <p className="text-sm text-gray-600 mb-4">הקלקה קצרה ב-Google תעזור לנו מאוד 🙏</p>
+            <a href={google} className="inline-block px-4 py-2.5 rounded-lg text-white text-sm font-medium"
                style={{background:'#00B0F0'}}>לדירוג ב-Google</a>
-            <p className="text-xs text-gray-500 mt-3">נעביר אתכם אוטומטית בעוד כמה שניות…</p>
+            <p className="text-xs text-gray-500 mt-3">נעביר אתכם אוטומטית בעוד 4 שניות…</p>
           </div>);
-        if (selected?.v === 4) return (
+        if(sel?.v===4) return (
           <div className="bg-white rounded-xl shadow p-6 max-w-sm text-center border border-gray-100">
             <div className="text-4xl mb-2">🙏</div>
             <h3 className="text-lg font-semibold mb-1">תודה על המשוב החיובי!</h3>
-            <p className="text-sm text-gray-600">שמחים שנהניתם 🙌</p>
+            <p className="text-sm text-gray-600">שמחים שנהניתם 🤗</p>
           </div>);
         return (
           <div className="bg-white rounded-xl shadow p-6 max-w-sm text-center border border-gray-100">
             <div className="text-4xl mb-2">✅</div>
             <h3 className="text-lg font-semibold mb-1">קיבלנו, תודה!</h3>
-            <p className="text-sm text-gray-600">נעשה הכול להשתפר</p>
+            <p className="text-sm text-gray-600">אנחנו כבר עובדים על שיפור</p>
           </div>);
       }
 
       /* ---------- FEEDBACK ---------- */
-      if (view === 'feedback') return (
+      if(view==='feedback') return (
         <div className="bg-white rounded-xl shadow p-6 max-w-sm border border-gray-100">
           <h3 className="text-base font-semibold mb-4">נשמח לשמוע איך נוכל להשתפר 🙏</h3>
           <div className="space-y-3">
@@ -109,21 +96,21 @@
               <textarea rows="2" className="w-full text-sm border border-gray-200 rounded-lg px-3 py-2
                                              focus:outline-none focus:ring-2 focus:ring-brandBlue resize-none"
                         placeholder="ספרו לנו מה פחות עבד"
-                        value={neg} onChange={e=>setNeg(e.target.value)} />
+                        value={bad} onChange={e=>setB(e.target.value)} />
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">מה אהבתם? 💙</label>
               <textarea rows="2" className="w-full text-sm border border-gray-200 rounded-lg px-3 py-2
                                              focus:outline-none focus:ring-2 focus:ring-brandBlue resize-none"
                         placeholder="רגעים טובים או צוות מצוין"
-                        value={pos} onChange={e=>setPos(e.target.value)} />
+                        value={good} onChange={e=>setG(e.target.value)} />
             </div>
-            <button onClick={submit}
-                    disabled={busy || (!neg.trim() && !pos.trim())}
+            <button onClick={send}
+                    disabled={busy||(!bad.trim()&&!good.trim())}
                     className="w-full py-2.5 rounded-lg text-white text-sm font-medium disabled:opacity-50
                                flex items-center justify-center gap-1"
                     style={{background:'#00B0F0'}}>
-              {busy ? 'שולח…' : <>✉️<span>שלח משוב</span></>}
+              {busy?'שולח…':<>✉️<span>שלח משוב</span></>}
             </button>
           </div>
         </div>);
@@ -135,21 +122,19 @@
             איך הייתה החוויה שלכם בסניף? 🤓
           </h2>
           <div className="flex justify-between gap-2">
-            {ratings.map(r=>(
+            {rates.map(r=>(
               <button key={r.v} onClick={()=>choose(r)}
-                      className={`flex flex-col items-center gap-1 p-2 rounded-lg transition
-                                  hover:scale-105
-                                  ${selected?.v===r.v ? 'bg-blue-50 border-2 border-brandBlue' : 'hover:bg-gray-50'}`}
+                      className={`flex flex-col items-center gap-1 p-2 rounded-lg transition hover:scale-105
+                          ${sel?.v===r.v?'bg-blue-50 border-2 border-brandBlue':'hover:bg-gray-50'}`}
                       style={{minWidth:'54px'}}>
                 <span className="text-2xl">{r.e}</span>
                 <span className="text-[11px] text-gray-600 leading-tight">{r.l}</span>
-              </button>
-            ))}
+              </button>))}
           </div>
         </div>);
     };
 
-    /* הרצת האפליקציה */
+    /* הרצה */
     createRoot(document.getElementById('root')).render(<HalperinEmojiRating />);
   </script>
 </body>
